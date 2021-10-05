@@ -1,1 +1,1 @@
-# JaredAcker-JaredAcker_Homework_TeamProfileGenerator
+# JaredAcker_Homework_TeamProfileGenerator

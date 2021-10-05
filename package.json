@@ -9,5 +9,21 @@
   },
   "scripts": {
     "test": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JaredAcker/JaredAcker-JaredAcker_Homework_TeamProfileGenerator"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/JaredAcker/JaredAcker-JaredAcker_Homework_TeamProfileGenerator/issues"
+  },
+  "homepage": "https://github.com/JaredAcker/JaredAcker-JaredAcker_Homework_TeamProfileGenerator#readme",
+  "dependencies": {
+    "inquirer": "^8.1.5"
+  },
+  "devDependencies": {
+    "jest": "^24.8.0"
   }
 }

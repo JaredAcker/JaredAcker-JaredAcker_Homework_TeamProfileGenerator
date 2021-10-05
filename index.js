@@ -1,183 +1,149 @@
-let noteTitle;
-let noteText;
-let saveNoteBtn;
-let newNoteBtn;
-let noteList;
+const inquirer = require('inquirer');
+const fs = require('fs');
+const Employee = require('./lib/employee');
+const Manager = require('./lib/manager');
+const Engineer = require('./lib/engineer');
+const Intern = require('./lib/intern');
 
-if (window.location.pathname === '/notes') {
-  noteTitle = document.querySelector('.note-title');
-  noteText = document.querySelector('.note-textarea');
-  saveNoteBtn = document.querySelector('.save-note');
-  newNoteBtn = document.querySelector('.new-note');
-  noteList = document.querySelectorAll('.list-container .list-group');
-}
 
-// Show an element
-const show = (elem) => {
-  elem.style.display = 'inline';
-};
+const generateHTML = require('./src/generateHTML');
 
-// Hide an element
-const hide = (elem) => {
-  elem.style.display = 'none';
-};
 
-// activeNote is used to keep track of the note in the textarea
-let activeNote = {};
+let myTeam = [];
 
-const getNotes = () =>
-  fetch('/api/notes', {
-    method: 'GET',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  });
 
-const saveNote = (note) =>
-  fetch('/api/notes', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(note),
-  });
-
-const deleteNote = (id) =>
-  fetch(`/api/notes/${id}`, {
-    method: 'DELETE',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  });
-
-const renderActiveNote = () => {
-  hide(saveNoteBtn);
-
-  if (activeNote.id) {
-    noteTitle.setAttribute('readonly', true);
-    noteText.setAttribute('readonly', true);
-    noteTitle.value = activeNote.title;
-    noteText.value = activeNote.text;
-  } else {
-    noteTitle.removeAttribute('readonly');
-    noteText.removeAttribute('readonly');
-    noteTitle.value = '';
-    noteText.value = '';
-  }
-};
-
-const handleNoteSave = () => {
-  const newNote = {
-    title: noteTitle.value,
-    text: noteText.value,
+const addManager = () => {
+    return inquirer.prompt([
+      {
+        type: 'input',
+        name: 'name',
+        message: `What is the team manager's name?`
+      },
+      {
+        type: 'input',
+        name: 'id',
+        message: `What is the team manager's id?`,
+      },
+      {
+        type: 'input',
+        name: 'email',
+        message: `What is the team manager's email address?`,
+      },
+      {
+        type: 'input',
+        name: 'officeNumber',
+        message: `What is the team manager's office number?`,
+      },
+    ])
+    .then(answers => {
+      let manager = new Manager(answers.name, answers.id, answers.email, answers.officeNumber);
+      myTeam.push(manager);
+      console.log(myTeam);
+    })       
   };
-  saveNote(newNote).then(() => {
-    getAndRenderNotes();
-    renderActiveNote();
-  });
-};
 
-// Delete the clicked note
-const handleNoteDelete = (e) => {
-  // Prevents the click listener for the list from being called when the button inside of it is clicked
-  e.stopPropagation();
-
-  const note = e.target;
-  const noteId = JSON.parse(note.parentElement.getAttribute('data-note')).id;
-
-  if (activeNote.id === noteId) {
-    activeNote = {};
+const addEmployeeMenu = () => {
+  return inquirer.prompt([
+    {
+      type: 'list',
+      name: 'option',
+      message: 'Whould you like to?',
+      choices: ['Add Engineer', 'Add Intern', 'Finish building my team'],
+    },
+  ])
+  .then(answers => {
+    if (answers.option === 'Add Engineer'){
+      return addEngineer();
+    } else if (answers.option === 'Add Intern'){
+      return addIntern();
+    } else {
+      console.log(myTeam);
+      console.log("Your team has been created!!!")
+      const html = generateHTML(myTeam);      
+      writeHTML(html);           
+      };
+      
+    })
   }
+        
 
-  deleteNote(noteId).then(() => {
-    getAndRenderNotes();
-    renderActiveNote();
-  });
+const addEngineer = () => {
+  return inquirer.prompt([
+    {
+      type: 'input',
+      name: 'name',
+      message: `What is the engineer's name?`,
+    },
+    {
+      type: 'input',
+      name: 'id',
+      message: `What is the engineer's id?`,
+    },
+    {
+      type: 'input',
+      name: 'email',
+      message: `What is the engineer's email address?`,
+    },
+    {
+      type: 'input',
+      name: 'gitHub',
+      message: `What is the engineer's GitHub user name?`,
+    },
+  ])
+  .then(answers => {
+    let engineer = new Engineer(answers.name, answers.id, answers.email, answers.gitHub);
+    myTeam.push(engineer);
+    console.log(myTeam);
+    return addEmployeeMenu();
+  })       
+     
 };
 
-// Sets the activeNote and displays it
-const handleNoteView = (e) => {
-  e.preventDefault();
-  activeNote = JSON.parse(e.target.parentElement.getAttribute('data-note'));
-  renderActiveNote();
+const addIntern = () => {
+  return inquirer.prompt([
+    {
+      type: 'input',
+      name: 'name',
+      message: `What is the intern's name?`,
+    },
+    {
+      type: 'input',
+      name: 'id',
+      message: `What is the intern's id?`,
+    },
+    {
+      type: 'input',
+      name: 'email',
+      message: `What is the intern's email address?`,
+    },
+    {
+      type: 'input',
+      name: 'school',
+      message: `Where does the intern go to school?`,
+    },
+  ])
+  .then(answers => {
+    let intern = new Intern(answers.name, answers.id, answers.email, answers.school);
+    myTeam.push(intern);
+    console.log(myTeam);
+    return addEmployeeMenu();
+  })       
+     
 };
 
-// Sets the activeNote to and empty object and allows the user to enter a new note
-const handleNewNoteView = (e) => {
-  activeNote = {};
-  renderActiveNote();
+const init = () => {
+    addManager()
+      .then (addEmployeeMenu)   
 };
+  
+init();
 
-const handleRenderSaveBtn = () => {
-  if (!noteTitle.value.trim() || !noteText.value.trim()) {
-    hide(saveNoteBtn);
-  } else {
-    show(saveNoteBtn);
-  }
-};
-
-// Render the list of note titles
-const renderNoteList = async (notes) => {
-  let jsonNotes = await notes.json();
-  if (window.location.pathname === '/notes') {
-    noteList.forEach((el) => (el.innerHTML = ''));
-  }
-
-  let noteListItems = [];
-
-  // Returns HTML element with or without a delete button
-  const createLi = (text, delBtn = true) => {
-    const liEl = document.createElement('li');
-    liEl.classList.add('list-group-item');
-
-    const spanEl = document.createElement('span');
-    spanEl.classList.add('list-item-title');
-    spanEl.innerText = text;
-    spanEl.addEventListener('click', handleNoteView);
-
-    liEl.append(spanEl);
-
-    if (delBtn) {
-      const delBtnEl = document.createElement('i');
-      delBtnEl.classList.add(
-        'fas',
-        'fa-trash-alt',
-        'float-right',
-        'text-danger',
-        'delete-note'
-      );
-      delBtnEl.addEventListener('click', handleNoteDelete);
-
-      liEl.append(delBtnEl);
+function writeHTML (html){
+  fs.writeFile('./dist/intex.html', html, err => {
+    if (err) {
+      console.log(err);
+    } else {
+      console.log(`'index.html' has been created and can be found in the 'dist' folder.`);
     }
-
-    return liEl;
-  };
-
-  if (jsonNotes.length === 0) {
-    noteListItems.push(createLi('No saved Notes', false));
-  }
-
-  jsonNotes.forEach((note) => {
-    const li = createLi(note.title);
-    li.dataset.note = JSON.stringify(note);
-
-    noteListItems.push(li);
-  });
-
-  if (window.location.pathname === '/notes') {
-    noteListItems.forEach((note) => noteList[0].append(note));
-  }
-};
-
-// Gets notes from the db and renders them to the sidebar
-const getAndRenderNotes = () => getNotes().then(renderNoteList);
-
-if (window.location.pathname === '/notes') {
-  saveNoteBtn.addEventListener('click', handleNoteSave);
-  newNoteBtn.addEventListener('click', handleNewNoteView);
-  noteTitle.addEventListener('keyup', handleRenderSaveBtn);
-  noteText.addEventListener('keyup', handleRenderSaveBtn);
+  })
 }
-
-getAndRenderNotes();
